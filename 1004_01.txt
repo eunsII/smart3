@@ -1,0 +1,141 @@
+#include <IRremote.h>
+#define IRIN 13 // 13번핀 변수
+
+/*
+FD00FF	- power
+FD807F	- vol+
+FD40BF	- func/stop
+FD20DF	- <<
+FDA05F	- >|
+FD609F	- >>
+FD10EF	- down
+FD906F	- vol-
+FD50AF	- up
+FD30CF	- 0
+FDB04F	- eq
+FD708F	- st/rept
+FD08F7	- 1
+FD8877	- 2
+FD48B7	- 3
+FD28D7	- 4
+FDA857	- 5
+FD6897 	- 6
+FD18E7	- 7
+FD9867	- 8
+FD58A7	- 9
+*/
+
+IRrecv irrecv(IRIN); // IRIN 핀을 이용해서 적외선 통신을 하겠다...
+decode_results results;
+
+// LED 핀 변수 
+int red = 7;
+int orange = 8;
+int green = 9;
+int blue = 10;
+
+/*
+	리모콘의 
+    	1	- red
+        2	- orange
+        3	- green
+        4	- blue
+        5	- red, orange
+        6	- green, blue
+        7	- alll...
+    led가 점등되도록 코드를 작성하세요.
+    
+   	대기시간은 2초로 한다.
+    
+    1. 코드를 완성하고 작동시켜서 정상작동 확인하고...
+    
+    2. 함수로 제작해보자.
+	        
+*/
+void setup()
+{
+  // 시리얼통신 활성화
+  Serial.begin(9600);
+  irrecv.enableIRIn(); // 적외선 통신 활성화...
+  pinMode(IRIN, INPUT);
+  
+  // led 핀모드설정
+  pinMode(red, OUTPUT);
+  pinMode(orange, OUTPUT);
+  pinMode(green, OUTPUT);
+  pinMode(blue, OUTPUT);
+}
+
+void loop()
+{
+  if(irrecv.decode(&results)){
+    // results 변수에 읽은 값이 있는 경우...
+    // scanf(입력형식, &입력변수, &입력변수, ....)
+    
+    // 입력된 값을 출력해보자.
+    Serial.println(results.value, HEX);
+    int pin = 0;
+    int pin1 = 0;
+    int pin2 = 0;
+    
+    switch(results.value){
+    case 0xFD08F7: // 1번 - 빨강
+      pin = red;
+      break;
+    case 0xFD8877: // 2번 - 오렌지
+      pin = orange;
+      break;
+    case 0xFD48B7: // 3 - 초록
+      pin = green;
+      break;
+    case 0xFD28D7: // 4 - 파랑
+      pin = blue;
+      break;
+    case 0xFDA857: // 5 - 빨강, 오렌지
+      pin1 = 1;
+      break;
+    case 0xFD6897: // 6 - 초록, 파랑
+      pin1 = 2;
+      break;
+	case 0xFD18E7: // 7 - 모두
+      pin2 = 1;
+      break;
+    }
+    
+    if(pin2 == 1){
+      // led all light on
+      digitalWrite(red, HIGH);
+      digitalWrite(orange, HIGH);
+      digitalWrite(green, HIGH);
+      digitalWrite(blue, HIGH);
+      delay(1000);
+      digitalWrite(red, LOW);
+      digitalWrite(orange, LOW);
+      digitalWrite(green, LOW);
+      digitalWrite(blue, LOW);
+    } else if(pin1 == 1){
+      digitalWrite(red, HIGH);
+      digitalWrite(orange, HIGH);
+      delay(1000);
+      digitalWrite(red, LOW);
+      digitalWrite(orange, LOW);
+    } else if(pin1 == 2){
+      digitalWrite(green, HIGH);
+      digitalWrite(blue, HIGH);
+      delay(1000);
+      digitalWrite(green, LOW);
+      digitalWrite(blue, LOW);
+    } else if(pin != 0){
+      digitalWrite(pin, HIGH);
+      delay(1000);
+      digitalWrite(pin, LOW);
+    }
+    
+    delay(2000);
+    irrecv.resume(); // 다음신호 수신대기...
+  }
+}
+
+void turnOnLed(){
+  
+}
